@@ -40,7 +40,7 @@ int TrafficModel::get_lane_change_command(int id)
  */
 void TrafficModel::update()
 {
-	// TODO: complete this function
+
 	int turnSignal;
 	int checked;
 	for (int i = 0; i < platoons.size(); i++){
@@ -72,39 +72,65 @@ void TrafficModel::update()
 		}
 	}
 }
-
-int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) {
-	//TODO add checking of hasTurned BOOL
-	int Carpos = carCheck->get_position();
-	if (turnSignal == 0 && !carCheck->get_hasTurned() ) {
+bool TrafficModel::forwardValid(Car* carCheck) {
+	if (!carCheck->get_hasTurned() ) {
 		if ( (carCheck->get_next() == NULL)  ||  (carCheck->get_next()->get_position() != (carCheck->get_position() +1)) ) {
 			std::cout << "can move forward" <<std::endl;
-			return 0;
+			return true;
 		}
 		else {
-			return 3;
+			return false;
 		}
 	}
+	else {
+				return false;
+			}
+}
 
+
+int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) {
+	int Carpos = carCheck->get_position();
+	if (turnSignal == 0 && (forwardValid(carCheck)) ) {
+		return 0;
+	}
+	//LEFT
 	else if (turnSignal == 1 && !carCheck->get_hasTurned()) {
 		if (currentPlatoon == 0) {
 			std::cout << "illegal move, checking for forward" <<std::endl;
-			Validcheck(carCheck,0, currentPlatoon);
+			if (forwardValid(carCheck)) {
+				std::cout << "Forward after left fail" <<std::endl;
+				return 0;
+			}
+			else {
+				return 3;
+			}
 		}
 		else if (spaceCheck(platoons[(currentPlatoon-1)], Carpos)) {
 			std::cout << "can move left" <<std::endl;
 			return 1;
 		}
 		else {
-			Validcheck(carCheck,0, currentPlatoon);
+			std::cout << "couldnt move left, checking if can go forward" <<std::endl;
+			if (forwardValid(carCheck)) {
+			std::cout << "Forward after left fail" <<std::endl;
+							return 0;
+					}
+					else {
+						return 3;
+					}
 		}
 	}
-	//TODO if statement to check if turning right into out of bounds
-
+	//RIGHT
 	else if (turnSignal == 2 && !carCheck->get_hasTurned()) {
 		if (currentPlatoon == (platoons.size()-1) ){
 			std::cout << "illegal move, checking for forward" <<std::endl;
-			Validcheck(carCheck,0, currentPlatoon);
+			if (forwardValid(carCheck)) {
+				std::cout << "Forward after right fail" <<std::endl;
+						return 0;
+				}
+					else {
+							return 3;
+				}
 		}
 		//TODO if statement to check the above or below lane and if there is a position is free
 
@@ -113,10 +139,20 @@ int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) 
 			return 2;
 		}
 		else {
-			Validcheck(carCheck,0, currentPlatoon);
+			std::cout << "couldnt move right, checking if can go forward" <<std::endl;
+			if (forwardValid(carCheck)) {
+				std::cout << "Forward after right fail" <<std::endl;
+					return 0;
+				}
+				else {
+					return 3;
+				}
 		}
 	}
-	return 3;
+	else {
+
+		return 3;
+	}
 }
 
 bool TrafficModel::spaceCheck (Platoon platoon,int pos) {
