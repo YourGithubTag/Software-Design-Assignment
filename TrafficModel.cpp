@@ -40,6 +40,7 @@ int TrafficModel::get_lane_change_command(int id)
  */
 
 //TODO CHECK WHY THE UPDATE WHILE LOOP KEEPS REPEATING
+//TODO Check the difference between the loop breaking from temp rather than iterate
 void TrafficModel::update()
 {
 
@@ -47,7 +48,7 @@ void TrafficModel::update()
 	int checked;
 	for (int currentPlatoon = 0; currentPlatoon < platoons.size(); currentPlatoon++){
 		Car* iterate = platoons[currentPlatoon].get_tail();
-		Car* temp;
+		Car* temp = iterate->get_prev();
 		while (iterate != NULL){
 			std::cout << "start while" <<std::endl;
 			temp = iterate->get_prev();
