@@ -42,8 +42,12 @@ Platoon::Platoon(string init)
 void Platoon::remove(Car* c) {
 	Car* previousCar = c->get_prev();
 	Car* nextCar = c->get_next();
-
-	if (c == tail) {
+	if (c == head && c == tail) {
+		head = NULL;
+		tail = NULL;
+		std::cout << "remove successful" << std::endl;
+	}
+	else if (c == tail) {
 		previousCar->set_next(NULL);
 		tail = previousCar;
 		c->set_next(NULL);
@@ -92,20 +96,20 @@ void Platoon::insert(Car* c){
 	Car* p = head;
 	while(!inserted) {  //CHECK FOR EQUALITY MAYBE
 		std::cout << "checking if can be inserted" << std::endl;
-		if (p == NULL) {
-			break;
-		}
 		if (head == NULL && tail == NULL) {
 			append(c);
+			std::cout << "inserted into empty" << std::endl;
 			inserted = true;
 		}
-		if (p == tail  && p->get_position() < c->get_position()) {
+		else if (p == tail  && p->get_position() < c->get_position()) {
 			append(c);
+			std::cout << "inserted into tail" << std::endl;
 			inserted = true;
 		}
 
 		else if (p == head && p->get_position() > c->get_position() ) {
 			prepend(c);
+			std::cout << "inserted into head" << std::endl;
 			inserted = true;
 		}
 		else if ( (p->get_next()->get_position() > c->get_position() ) && (p->get_position() < c->get_position()) ) {
