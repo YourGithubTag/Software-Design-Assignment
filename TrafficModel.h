@@ -27,7 +27,7 @@ class TrafficModel
 		void set_commands(vector<string> commands);
 		void initialize(vector<string> info);
 		void update();
-		int Validcheck();
+		int Validcheck(Car* carCheck, int turnSignal);
 		vector<string> get_system_state();
 };
 

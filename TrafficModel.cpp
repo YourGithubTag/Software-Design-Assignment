@@ -39,39 +39,65 @@ int TrafficModel::get_lane_change_command(int id)
 void TrafficModel::update()
 {
 	// TODO: complete this function
+	int turnSignal;
+	int checked;
 	for (int i = 0; i < platoons.size(); i++){
 		Car* iterate = platoons[i].get_tail();
 		while (iterate != NULL){
 
-			/*for (int j = 0; j < sizeof(commands); j++ ) { //TODO change structure of this loop
+			turnSignal = get_lane_change_command(iterate->get_id());
+			checked = Validcheck(iterate, turnSignal,i,platoons.size());
 
-				//string com = commands[j];
-				//com = SimulationUI::split(com);
-
-				if (com[2] == iterate->get_id() ) { // check how to get car ID from Command
-					if (Validcheck() == 1){
-						platoons[i].remove(iterate);
-						platoons[i-1].insert(iterate); //TODO tree up  insert
-					}
-					if (Validcheck() == 2){
-						platoons[i].remove(iterate);
-					    platoons[i+1].insert(iterate); //TODO  tree  down insert
-					}
+			if (checked == 0){
+				int nextpos = iterate->get_position() +1 ;
+				iterate->set_position(nextpos);
+				}
+			else if (checked == 1){
+				 platoons[i].remove(iterate);
+				  platoons[i-1].insert(iterate); //TODO  tree  down insert
+				}
+			else if (checked == 2){
+				platoons[i].remove(iterate);
+				platoons[i+1].insert(iterate); //TODO  tree  down insert
 				}
 				else {
+						;
+				}
 
-					}
-			}*/
-
-			int nextpos = iterate->get_position() +1 ;
-			iterate->set_position(nextpos);
 			//moving backwards
 			iterate = iterate->get_prev();
 		}
 	}
 }
 
-int TrafficModel::Validcheck() {
+int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) {
+	int Carpos = carCheck->get_position();
+	if (turnSignal == 0) {
+		if ( (carCheck->get_next() == NULL)  ||  (carCheck->get_next()->get_position() != (carCheck->get_position() +1)) ) {
+			return 0;
+		}
+		else {
+			return 3;
+		}
+	}
+
+	if (turnSignal == 1) {
+		if (currentPlatoon == 0) {
+			Validcheck(carCheck,0);
+		}
+		else if (spaceCheck(platoons[currentPlatoon -1], Carpos)) {
+
+		}
+	}
+	if (turnSignal == 2) {
+		if (currentPlatoon == (platoons.size()-1) ){
+			Validcheck(carCheck,0);
+		}
+		else if (spaceCheck(platoons[currentPlatoon +1], Carpos)) {
+
+		}
+
+	}
 
 //TODO if statement to check if turning left into out of bounds
 
@@ -84,7 +110,21 @@ int TrafficModel::Validcheck() {
 	return 0;
 
 }
+bool spaceCheck (Platoon platoon,int pos) {
+	bool inserted = false;
+	Car* iterate = platoon.get_tail();
 
+	while (iterate != NULL)
+		{
+			if (iterate->get_position() == pos) {
+				return false;
+			}
+			else {
+				iterate = iterate->get_prev();
+			}
+		}
+	return true;
+}
 /*
  * Initialization based on the input information
  */
