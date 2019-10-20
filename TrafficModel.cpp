@@ -33,6 +33,8 @@ int TrafficModel::get_lane_change_command(int id)
 	return 0;
 }
 
+
+
 /*
  * The function that updates the vehicle positions and states.
  */
@@ -43,10 +45,11 @@ void TrafficModel::update()
 	int checked;
 	for (int i = 0; i < platoons.size(); i++){
 		Car* iterate = platoons[i].get_tail();
+		Car* temp;
 		while (iterate != NULL){
-
+			temp = iterate->get_prev();
 			turnSignal = get_lane_change_command(iterate->get_id());
-			checked = Validcheck(iterate, turnSignal,i,platoons.size());
+			checked = Validcheck(iterate, turnSignal,i);
 
 			if (checked == 0){
 				int nextpos = iterate->get_position() +1 ;
@@ -58,22 +61,24 @@ void TrafficModel::update()
 				}
 			else if (checked == 2){
 				platoons[i].remove(iterate);
-				platoons[i+1].insert(iterate); //TODO  tree  down insert
+				platoons[i+1].insert(iterate);
+				 iterate->set_hasTurned(true);//TODO  tree  down insert
 				}
 				else {
-						;
+					iterate->set_hasTurned(false);
 				}
-
 			//moving backwards
-			iterate = iterate->get_prev();
+			iterate = temp;
 		}
 	}
 }
 
 int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) {
+	//TODO add checking of hasTurned BOOL
 	int Carpos = carCheck->get_position();
-	if (turnSignal == 0) {
+	if (turnSignal == 0 && !carCheck->get_hasTurned() ) {
 		if ( (carCheck->get_next() == NULL)  ||  (carCheck->get_next()->get_position() != (carCheck->get_position() +1)) ) {
+			std::cout << "can move forward" <<std::endl;
 			return 0;
 		}
 		else {
@@ -81,39 +86,41 @@ int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) 
 		}
 	}
 
-	if (turnSignal == 1) {
+	else if (turnSignal == 1 && !carCheck->get_hasTurned()) {
 		if (currentPlatoon == 0) {
-			Validcheck(carCheck,0);
+			std::cout << "illegal move, checking for forward" <<std::endl;
+			Validcheck(carCheck,0, currentPlatoon);
 		}
-		else if (spaceCheck(platoons[currentPlatoon -1], Carpos)) {
-
+		else if (spaceCheck(platoons[(currentPlatoon-1)], Carpos)) {
+			std::cout << "can move left" <<std::endl;
+			return 1;
+		}
+		else {
+			Validcheck(carCheck,0, currentPlatoon);
 		}
 	}
-	if (turnSignal == 2) {
+	//TODO if statement to check if turning right into out of bounds
+
+	else if (turnSignal == 2 && !carCheck->get_hasTurned()) {
 		if (currentPlatoon == (platoons.size()-1) ){
-			Validcheck(carCheck,0);
+			std::cout << "illegal move, checking for forward" <<std::endl;
+			Validcheck(carCheck,0, currentPlatoon);
 		}
-		else if (spaceCheck(platoons[currentPlatoon +1], Carpos)) {
+		//TODO if statement to check the above or below lane and if there is a position is free
 
+		else if (spaceCheck(platoons[(currentPlatoon+1)], Carpos)) {
+			std::cout << "can move right" <<std::endl;
+			return 2;
 		}
-
+		else {
+			Validcheck(carCheck,0, currentPlatoon);
+		}
 	}
-
-//TODO if statement to check if turning left into out of bounds
-
-//TODO if statement to check if turning right into out of bounds
-
-//TODO if statement to check the above or below lane and if there is a position is free
-
-	//TODO if below
-	//TODO if above
-	return 0;
-
+	return 3;
 }
-bool spaceCheck (Platoon platoon,int pos) {
-	bool inserted = false;
-	Car* iterate = platoon.get_tail();
 
+bool TrafficModel::spaceCheck (Platoon platoon,int pos) {
+	Car* iterate = platoon.get_tail();
 	while (iterate != NULL)
 		{
 			if (iterate->get_position() == pos) {
@@ -125,6 +132,7 @@ bool spaceCheck (Platoon platoon,int pos) {
 		}
 	return true;
 }
+
 /*
  * Initialization based on the input information
  */

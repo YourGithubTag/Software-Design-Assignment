@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cstring>
 #include "Platoon.h"
+#include <iostream>
 
 #include "Car.h"
 
@@ -27,7 +28,8 @@ class TrafficModel
 		void set_commands(vector<string> commands);
 		void initialize(vector<string> info);
 		void update();
-		int Validcheck(Car* carCheck, int turnSignal);
+		int Validcheck(Car* carCheck, int turnSignal, int currentPlatoon);
+		bool spaceCheck (Platoon platoon,int pos);
 		vector<string> get_system_state();
 };
 

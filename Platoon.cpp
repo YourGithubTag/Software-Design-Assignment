@@ -28,7 +28,7 @@ Platoon::Platoon(string init)
                 tail = car;
             }
             else
-            {
+            { //TODO use the insert function which inserts based off position
                 tail->set_next(car);
                 car->set_prev(tail);
                 tail = car;
@@ -43,17 +43,19 @@ void Platoon::remove(Car* c) {
 	Car* previousCar = c->get_prev();
 	Car* nextCar = c->get_next();
 
-	if (nextCar == NULL) {
-		previousCar->set_next(nextCar);
+	if (c == tail) {
+		previousCar->set_next(NULL);
 		tail = previousCar;
 		c->set_next(NULL);
 		c->set_prev(NULL);
+		std::cout << "remove successful" << std::endl;
 	}
-	else if (previousCar == NULL) {
-		nextCar->set_next(previousCar);
+	else if (c == head) {
+		nextCar->set_prev(NULL);
 		head = nextCar;
 		c->set_next(NULL);
 		c->set_prev(NULL);
+		std::cout << "remove successful" << std::endl;
 	}
 	else {
 		previousCar->set_next(nextCar);
@@ -61,6 +63,7 @@ void Platoon::remove(Car* c) {
 
 		c->set_next(NULL);
 		c->set_prev(NULL);
+		std::cout << "remove successful" << std::endl;
 	}
 }
 void Platoon::append(Car* c){
@@ -87,24 +90,42 @@ void Platoon::prepend(Car* c){
 void Platoon::insert(Car* c){
 	bool inserted = false;
 	Car* p = head;
-	while(!inserted)
-	{
-		//TODO MAybe have a check for head and tail
-		if ((c->get_position() < p->get_next()->get_position() ) && (p->get_position() < c->get_position()) ) {
-
-			c->set_next(p->get_next());
-			c->set_prev(p);
-
-			p->get_next()->set_prev(c);
-			p->set_next(c);
+	while(!inserted) {  //CHECK FOR EQUALITY MAYBE
+		std::cout << "checking if can be inserted" << std::endl;
+		if (p == NULL) {
+			break;
+		}
+		if (head == NULL && tail == NULL) {
+			append(c);
 			inserted = true;
+		}
+		if (p == tail  && p->get_position() < c->get_position()) {
+			append(c);
+			inserted = true;
+		}
+
+		else if (p == head && p->get_position() > c->get_position() ) {
+			prepend(c);
+			inserted = true;
+		}
+		else if ( (p->get_next()->get_position() > c->get_position() ) && (p->get_position() < c->get_position()) ) {
+				c->set_next(p->get_next());
+				c->set_prev(p);
+
+				p->get_next()->set_prev(c);
+				p->set_next(c);
+				std::cout << "insert successful" << std::endl;
+				inserted = true;
 
 		} else {
-			p = p->get_next();
+				std::cout << "NO" << std::endl;
+				p = p->get_next();
 		}
-	}
-}
 
+	}
+	std::cout << "leaving Insert" << std::endl;
+}
+//TODO sort all platoons then make algorithmns assume this
 void Platoon::sort() {
 	/*Car* c = head;
 	Car* d = head;

@@ -14,6 +14,14 @@ int Car::get_position()
 {
 	return position;
 }
+bool Car::get_hasTurned()
+{
+	return hasTurned;
+}
+void Car::set_hasTurned(bool set)
+{
+	hasTurned = set;
+}
 
 void Car::set_position(int pos)
 {
@@ -29,6 +37,7 @@ void Car::set_prev(Car* v)
 {
     prev = v;
 }
+
 
 Car* Car::get_next()
 {
