@@ -18,7 +18,7 @@ bool SimulationControl::run()
 	int max_time = view->getMaxSimulationTime();
 	initialization();
 
-	while(time <= max_time)
+	while(time < max_time)
 	{
 		time++;
 		simulationStep(time);
