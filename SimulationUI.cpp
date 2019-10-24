@@ -1,5 +1,7 @@
 #include "SimulationUI.h"
 
+SimulationUI::~SimulationUI() { };
+
 SimulationUI::SimulationUI(string filename)
 {
 	this->filename = filename;

@@ -3,6 +3,7 @@
 Car::Car(int id, int pos){
 	this->id = id;
 	this->position = pos;
+	this->hasTurned = false; //setting the turning flag
 }
 
 int Car::get_id()
@@ -20,7 +21,7 @@ bool Car::get_hasTurned()
 }
 void Car::set_hasTurned(bool set)
 {
-	hasTurned = set;
+	this->hasTurned = set;
 }
 
 void Car::set_position(int pos)

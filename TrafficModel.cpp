@@ -1,7 +1,19 @@
 #include "TrafficModel.h"
 
 TrafficModel::TrafficModel() { }
-TrafficModel::~TrafficModel(){ }
+
+TrafficModel::~TrafficModel(){
+	//looping through all platoons such that all cars can be deleted from the heap
+	for (unsigned int currentPlatoon = 0; currentPlatoon < platoons.size(); currentPlatoon++){
+		Car* iterate = platoons[currentPlatoon].get_tail();
+		Car* temp;
+		while (iterate != NULL){
+			temp = iterate->get_prev();
+			delete iterate; //deleting car
+			iterate = temp; //iterating
+		}
+	}
+}
 
 void TrafficModel::set_commands(vector<string> commands)
 {
@@ -33,156 +45,91 @@ int TrafficModel::get_lane_change_command(int id)
 	return 0;
 }
 
-
-
-/*
- * The function that updates the vehicle positions and states.
+ /* The function that updates the vehicle positions and states.
  */
 
-//TODO CHECK WHY THE UPDATE WHILE LOOP KEEPS REPEATING
-//TODO Check the difference between the loop breaking from temp rather than iterate
 void TrafficModel::update()
 {
-
 	int turnSignal;
 	int checked;
-	for (int currentPlatoon = 0; currentPlatoon < platoons.size(); currentPlatoon++){
-		Car* iterate = platoons[currentPlatoon].get_tail();
-		Car* temp = iterate->get_prev();
-		while (iterate != NULL){
-			std::cout << "start while" <<std::endl;
-			temp = iterate->get_prev();
-			turnSignal = get_lane_change_command(iterate->get_id());
-			checked = Validcheck(iterate, turnSignal,currentPlatoon);
+	int nextpos;
+	//for loop which loops through all platoons
+	for (unsigned int currentPlatoon = 0; currentPlatoon < platoons.size(); currentPlatoon++){
+		Car* iterate = platoons[currentPlatoon].get_tail(); //car we are checking, starting at tail and working our way back
+		Car* temp; // variable which gets the car behind the one we are checking, such that it will be the next car checked.
+		int nextpos;
+			while (iterate != NULL){
+				temp = iterate->get_prev(); //obtaining car behind iterate
+				turnSignal = get_lane_change_command(iterate->get_id()); //turn signal command
+				nextpos = iterate->get_position()+1; //value of the position ahead
+				checked = Validmove(iterate, currentPlatoon, turnSignal); //getting which command should be executed
+					//switch statement based on which command should be executed
+					switch(checked) {
+					case 0:
+						//moving forward
+						iterate->set_position(nextpos);
+						break;
 
-			if (checked == 0){
-				int nextpos = iterate->get_position() +1 ;
-				iterate->set_position(nextpos);
-				std::cout << "move front has been executed" <<std::endl;
-				}
-			else if (checked == 1){
-				 platoons[currentPlatoon].remove(iterate);
-				 platoons[currentPlatoon - 1].insert(iterate); //TODO  tree  down insert
-				 std::cout << "move left has been executed" <<std::endl;
-				}
-			else if (checked == 2){
-				platoons[currentPlatoon].remove(iterate);
-				platoons[currentPlatoon + 1].insert(iterate);
-				iterate->set_hasTurned(true);
-				std::cout << "move right has been executed" <<std::endl;
-				}
-				else {
-					iterate->set_hasTurned(false);
-				}
-			//moving backwards
-			std::cout << "changing temp" <<std::endl;
-			iterate = temp;
-		}
-	}
-	std::cout << "update finished" <<std::endl;
-}
-
-
-
-bool TrafficModel::forwardValid(Car* carCheck) {
-	if (!carCheck->get_hasTurned() ) {
-		if ( (carCheck->get_next() == NULL)  ||  (carCheck->get_next()->get_position() != (carCheck->get_position() +1)) ) {
-			std::cout << "can move forward" <<std::endl;
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	else {
-				return false;
+					case 1:
+						//making a left turn
+						platoons[currentPlatoon].remove(iterate);
+						platoons[currentPlatoon - 1].insert(iterate);
+						break;
+					case 2:
+						//making a right turn and setting flag so a car cannot be moved twice
+						iterate->set_hasTurned(true);
+						platoons[currentPlatoon].remove(iterate);
+						platoons[currentPlatoon + 1].insert(iterate);
+						break;
+					case 3:
+						//resetting the turning flag, once a car has been denied a move
+						iterate->set_hasTurned(false);
+						break;
 			}
-}
-
-int TrafficModel::Validcheck(Car* carCheck, int turnSignal, int currentPlatoon) {
-	int Carpos = carCheck->get_position();
-	if (turnSignal == 0 && (forwardValid(carCheck)) ) {
-		return 0;
+			iterate = temp; //moving backwards in the platoon
+			}
 	}
-	//LEFT
-	else if (turnSignal == 1 && !carCheck->get_hasTurned()) {
-		if (currentPlatoon == 0) {
-			std::cout << "illegal left move, checking for forward" <<std::endl;
-			if (forwardValid(carCheck)) {
-				std::cout << "Forward after left fail" <<std::endl;
+}
+//function which takes the car, the current platoon and the turn signal the car will execute, and checks if it is a valid move
+int TrafficModel::Validmove(Car* iterate, unsigned int currentPlatoon, int turnSignal) {
+	Car* checking = iterate;
+	int platoon = currentPlatoon;
+	//checking if a car has already made a move
+	if (!iterate->get_hasTurned()){
+		if (turnSignal == 0){
+			//checking if a car could move forward
+			if (checking->get_next() == NULL || checking->get_next()->get_position() != checking->get_position() + 1) {
 				return 0;
 			}
 			else {
-				return 3;
+				return 3; //denied a move
 			}
 		}
-		else if (spaceCheck((currentPlatoon - 1), Carpos)) {
-			std::cout << "can move left" <<std::endl;
-			return 1;
-		}
-		else {
-			std::cout << "couldnt move left, checking if can go forward" <<std::endl;
-			if (forwardValid(carCheck)) {
-			std::cout << "Forward after left fail" <<std::endl;
-							return 0;
-					}
-					else {
-						return 3;
-					}
-		}
-	}
-	//TODO Check
-	//RIGHT
-	else if (turnSignal == 2 && (!carCheck->get_hasTurned() ) ) {
-		if (currentPlatoon == (platoons.size()-1)){
-			std::cout << "illegal right move, checking for forward" <<std::endl;
-			if (forwardValid(carCheck)) {
-				std::cout << "Forward after illegal move fail" <<std::endl;
-				return 0;
-				}
-				else {
-							return 3;
-				}
-			}
 
-		else if (spaceCheck((currentPlatoon + 1), Carpos)) {
-			std::cout << "can move right" <<std::endl;
-			return 2;
-		}
-		else {
-			std::cout << "couldnt move right, checking if can go forward" <<std::endl;
-			if (forwardValid(carCheck)) {
-				std::cout << "Forward after right fail" <<std::endl;
-					return 0;
-				}
-				else {
-					return 3;
-				}
-		}
-	}
-	else {
-
-		return 3;
-	}
-}
-//TODO check if the platoon is empty and what it returns
-bool TrafficModel::spaceCheck (int platoonNumber,int pos) {
-	Car* iterate = platoons[platoonNumber].get_tail();
-	if (platoons[platoonNumber].get_tail() == NULL && platoons[platoonNumber].get_head() == NULL) {
-		std::cout << "this place is empty!" <<std::endl;
-		return true;
-	}
-	while (iterate != NULL)
-		{
-			if (iterate->get_position() == pos) {
-				return false;
+		else if (turnSignal == 1){
+			//checking if a car could move to the left, by checking if it is not going out of bounds and if the space is occupied or not
+			if (currentPlatoon != 0 && !(platoons[currentPlatoon - 1].spaceCheck(iterate->get_position()) )) {
+				return 1; //the left turn can be made
 			}
 			else {
-				iterate = iterate->get_prev();
+				return Validmove(checking, platoon,0); //car cannot make a left turn, recursion used to see if it can move forward
 			}
 		}
-	return true;
+
+		else if (turnSignal == 2){
+			//checking if a car can move right, by checking if it is trying to make an out of bounds move and if the space is occupied or not
+			if ((currentPlatoon != platoons.size() + 1 ) && !(platoons[currentPlatoon + 1].spaceCheck(iterate->get_position()) )) {
+				return 2; // the turn can be made
+			}
+			else {
+				return Validmove(checking, platoon,0); // recursion used to see if it can move forward
+			}
+		}
+	}
+	//car has been denied a move, due to already moving before
+	return 3;
 }
+
 
 /*
  * Initialization based on the input information

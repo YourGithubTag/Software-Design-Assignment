@@ -28,122 +28,126 @@ Platoon::Platoon(string init)
                 tail = car;
             }
             else
-            { //TODO use the insert function which inserts based off position
-                tail->set_next(car);
-                car->set_prev(tail);
-                tail = car;
-                car->set_next(NULL);
+            {
+            	this->insert(car);
             }
 		}
 	}
 }
 
-//TODO comments
+//Removing a car from a platoon
 void Platoon::remove(Car* c) {
-	Car* previousCar = c->get_prev();
-	Car* nextCar = c->get_next();
+	//IF only 1 car is in the platoon
 	if (c == head && c == tail) {
 		head = NULL;
 		tail = NULL;
-		std::cout << "remove successful" << std::endl;
+		c->set_next(NULL);
+		c->set_prev(NULL);
 	}
+	//At the end of a platoon
 	else if (c == tail) {
+		Car* previousCar= c->get_prev();
 		previousCar->set_next(NULL);
 		tail = previousCar;
 		c->set_next(NULL);
 		c->set_prev(NULL);
-		std::cout << "remove successful" << std::endl;
 	}
+	//At the start of the platoon
 	else if (c == head) {
+		Car* nextCar = c->get_next();
 		nextCar->set_prev(NULL);
 		head = nextCar;
 		c->set_next(NULL);
 		c->set_prev(NULL);
-		std::cout << "remove successful" << std::endl;
 	}
+	//Removing from anywhere in the platoon
 	else {
+		Car* previousCar = c->get_prev();
+		Car* nextCar = c->get_next();
+		//remaking the connections in the list
 		previousCar->set_next(nextCar);
 		nextCar->set_prev(previousCar);
 
 		c->set_next(NULL);
 		c->set_prev(NULL);
-		std::cout << "remove successful" << std::endl;
 	}
 }
+//Function which places a car at the tail of a linked list, a platoon
 void Platoon::append(Car* c){
+	//Empty platoon
 	if (head == NULL && tail == NULL) {
 		tail = c;
-		head=c;
+		head = c;
+		c->set_next(NULL);
+		c->set_prev(NULL);
 	}
-
-	Car* last = Platoon::get_tail();
-	last->set_next(c);
-	c->set_prev(last);
-	c->set_next(NULL);
-	tail = c;
-
+	else {
+		//appending by getting the tail, and setting it to point next to c and c to point back at tail, before setting tail to c
+		Car* last = Platoon::get_tail();
+		last->set_next(c);
+		c->set_prev(last);
+		c->set_next(NULL);
+		tail = c;
+	}
 }
+
+//Function which places a car at the head of a linked list, a platoon
 void Platoon::prepend(Car* c){
-	Car* first = Platoon::get_head();
-		first->set_prev(c);
+	//Empty platoon
+	if (head == NULL && tail == NULL) {
+			tail = c;
+			head = c;
+			c->set_next(NULL);
+			c->set_prev(NULL);
+	}
+	else {
+		//Prepending by setting the head to point to c, and c to point to head, then setting head to point to c
+		Car* first = Platoon::get_head();
+		first->set_prev(c); //setting old head to point back to c
 		c->set_next(first);
 		c->set_prev(NULL);
-		head = c;
+		head = c; //NEW hEAD
+	}
 }
 
 void Platoon::insert(Car* c){
-	bool inserted = false;
-	Car* p = head;
-	while(!inserted) {  //CHECK FOR EQUALITY MAYBE
-		std::cout << "checking if can be inserted" << std::endl;
-		if (head == NULL && tail == NULL) {
+		Car* p = head;
+		//If the platoon is empty
+		if (head == NULL) {
 			append(c);
-			std::cout << "inserted into empty" << std::endl;
-			inserted = true;
 		}
-		else if (p == tail  && p->get_position() < c->get_position()) {
-			append(c);
-			std::cout << "inserted into tail" << std::endl;
-			inserted = true;
-		}
-
-		else if (p == head && p->get_position() > c->get_position() ) {
+		//If c is smaller than head, it is prepended to the platoon
+		else if (p == head && (p->get_position() > c->get_position()) ) {
 			prepend(c);
-			std::cout << "inserted into head" << std::endl;
-			inserted = true;
 		}
-		else if ( (p->get_next()->get_position() > c->get_position() ) && (p->get_position() < c->get_position()) ) {
+		//If c is larger than tail, it is appended to the platoon
+		else if (p == tail && (p->get_position() < c->get_position()) ) {
+			append(c);
+		}
+		else {
+			//While loop which breaks either when p is null, or when p is found to be behind c and the car in front of p is in front of c
+			while( p != NULL && p->get_next()->get_position() < c->get_position() && p->get_position() > c->get_position() ) {
+				p = p->get_next(); //iterating
+			}
+				//inserting into position
 				c->set_next(p->get_next());
 				c->set_prev(p);
-
 				p->get_next()->set_prev(c);
 				p->set_next(c);
-				std::cout << "insert successful" << std::endl;
-				inserted = true;
-
-		} else {
-				std::cout << "NO" << std::endl;
-				p = p->get_next();
 		}
-
+}
+//Function which checks if a space is free or not, return true if a space is taken, and false when a space is free
+bool Platoon::spaceCheck(int carpos) {
+	Car* iterate = tail;
+	while (iterate != NULL) {
+		//comparing the two positions to see if they are the same spot
+		if (iterate->get_position() == carpos) {
+			return true;
+		}
+			iterate = iterate->get_prev(); //iterating
 	}
-	std::cout << "leaving Insert" << std::endl;
+	return false;
 }
-//TODO sort all platoons then make algorithmns assume this
-void Platoon::sort() {
-	/*Car* c = head;
-	Car* d = head;
-	bool swapped = false;
-	   while(c != NULL){
-		   while(d->get_next() != NULL){
-				if (d->get_position() < d->get_next()->get_position() ){
-					swap(d,d->get_next());
-				}
-	    }
-
-}*/
-}
-
 
 Car* Platoon::get_tail()
 {

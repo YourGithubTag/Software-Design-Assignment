@@ -28,9 +28,8 @@ class TrafficModel
 		void set_commands(vector<string> commands);
 		void initialize(vector<string> info);
 		void update();
-		bool forwardValid(Car* carCheck);
-		int Validcheck(Car* carCheck, int turnSignal, int currentPlatoon);
-		bool spaceCheck (int platoonNumber,int pos);
+
+		int Validmove(Car* iterate, unsigned int currentPlatoon, int turnSignal);
 		vector<string> get_system_state();
 };
 

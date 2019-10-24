@@ -24,14 +24,11 @@ class Platoon
         you may create methods below
         For example, something like:
 		*/
-
+        bool spaceCheck(int carpos);
         void remove(Car* c); 
         void append(Car* c); 
         void prepend(Car* c); 
         void insert(Car* c);
-
-        void sort();
-        void swap(Car* xp, Car* yp);
 
 };
 #endif
